@@ -1,49 +1,102 @@
+/**
+ * Created by user00 on 10/18/15.
+ */
 "use strict";
-var util = require('util');
 var EventEmitter = require('events').EventEmitter;
-var WS = require('ws');
-var WebSocketServer = WS.Server;
-var http = require('http');
+var util = require('util');
+var Client = require('./Client.js');
+function ReconnectingClient() {
 
-var qw;
+    this.masterReconnectHandle = null;
 
-function ConnectionServer($config, Qw) {
-    qw = Qw.log(this);
-    //todo this is network interface class
-    EventEmitter.call(this);
-
-    this.wss = null;
-    this.config = $config;
     this.commands = {    };
 }
-util.inherits(ConnectionServer, EventEmitter);
 
-ConnectionServer.prototype.start = function (expressApp) {
-    var self = this;
-    var host = self.config.host, port = self.config.port;
-    qw('starting at', port, host);
-    var options = {autoAcceptConnections: false, clientTracking: false};
-    if (expressApp) {
-        //use express app as server
-        var server = http.createServer(expressApp);
+util.inherits(ReconnectingClient, EventEmitter);
 
-        server.listen(port, host, function () {
-            qw(' Server is listening on port ', port);
-        });
-        options.server = server;
-    } else {
-        options.host = host;
-        options.port = port;
+/**
+ * sending JSON-serialized object as string
+ * @function
+ * @param {Object} a
+ */
+ReconnectingClient.prototype.send = function (a) {
+    if (this.masterSocket) {
+        this.masterSocket.send(a);
     }
-    self.wss = new WebSocketServer(options);
-
-    self.wss.on('connection', function (ws) {
-        self.emit('client', new Client(ws));
-    });
-    self.emit(self.EVENT_START_LISTENING);
 };
 
-ConnectionServer.prototype.addCommand = function (name, fn) {
+/**
+ * setup config params like url and reconnect interval
+ * @function
+ * @param {Object} config
+ * @param {String} config.url
+ * @param {Number} config.reconnectInterval
+ */
+ReconnectingClient.prototype.setConfig = function (config) {
+    this.config = config;
+    this.masterSocket = new Client(this.config.url, {});
+};
+
+/**
+ * connecting to target websocket server
+ * @function
+ */
+ReconnectingClient.prototype.connectToMaster = function () {
+    var self = this;
+
+    this.masterSocket.connect();
+    this.masterSocket.ws.once('open', function () {
+        if (self.masterReconnectHandle) {
+            clearInterval(self.masterReconnectHandle);
+        }
+        this.emit('connected');
+        self.send({cmd: 'slave_auth_ack', strategy: 'servertoken', data: self.config.token});
+    });
+
+    this.masterSocket.ws.on('message', function (message) {
+        var msg;
+        try {
+            msg = JSON.parse(message);
+        } catch (e) {
+            console.log('JSON parseError');
+        }
+        var cmdName = msg.cmd;
+        var command = self.commands[cmdName];
+        if (typeof command == "function") {
+            self.commands[cmdName](msg);    //тут надо передать контекст
+        }
+    });
+    this.masterSocket.ws.on('error', function (e) {
+        self.handleMasterError(e);
+    });
+    this.masterSocket.ws.once('close', function (code) {
+        self.onMasterDisconnect(code);
+    });
+};
+
+ReconnectingClient.prototype.onMasterDisconnect = function (code) {
+    var self = this;
+    this.masterSocket.disconnect();
+    this.emit('disconnected');
+    self.handleMasterError(code);
+    this.rooms = {};
+};
+ReconnectingClient.prototype.handleMasterError = function (code) {
+    var self = this;
+    if (self.config.reconnectInterval > 0) {
+        self.masterReconnectHandle = setTimeout(function () {
+            self.connectToMaster();
+        }, self.config.reconnectInterval);
+    }
+};
+
+/**
+ * adding new command
+ * @function
+ * @param {String} name
+ * @param {Function} fn
+ */
+ReconnectingClient.prototype.addCommand = function (name, fn) {
     if (typeof  fn !== "function") {
         throw Error('command must be a function');
     }
@@ -53,64 +106,5 @@ ConnectionServer.prototype.addCommand = function (name, fn) {
     this.commands[name] = fn;
 };
 
-ConnectionServer.prototype.EVENT_START_LISTENING = 'EVENT_START_LISTENING';
+module.exports = ReconnectingClient;
 
-
-/**
- * client profile
- * @typedef {Object} Profile
- * @property {Number} id
- * @property {String} name
- * @property {String} token
- * @property {String} dtreg
- * @property {String} lastdt
- * @property {String} avatar
- * @property {Number} currency1
- * @property {Number} currency2
- */
-/**
- * websocket client entity. Used as connection wrapper and client profile holder
- * @typedef {Object} Client
- * @property {WebSocket} connection
- * @property {Profile} profile
- */
-function Client(conn, profile) {
-    this.profile = profile || {};
-    this.connection = conn;
-}
-Client.prototype.close = function (code) {
-    this.connection && this.connection.close(code);
-}
-/**
- @static
- @type {number}
- @const
- */
-Client.CONNECTING = 0;
-/**
- @static
- @type {number}
- @const
- */
-Client.OPEN = 1;
-/**
- @static
- @type {number}
- @const
- */
-Client.CLOSING = 2;
-/**
- @static
- @type {number}
- @const
- */
-Client.CLOSED = 3;
-Client.prototype.send = function (js) {
-    if (this.connection.readyState == 1) {
-        this.connection.send(JSON.stringify(js));
-    } else {    //connection is in state CLOSING
-        console.log(this.profile.id, 'connection', this.connection.readyState);
-    }
-};
-
-module.exports = ConnectionServer;
