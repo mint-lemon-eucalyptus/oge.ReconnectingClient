@@ -1,0 +1,22 @@
+{
+    "name": "ReconnectingClient",
+    "version": "0.1.2",
+    "description": "oge websocket reconnecting client module",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:mint-lemon-eucalyptus/oge.ReconnectingClient.git"
+    },
+    "dependencies": {
+        "ws": "*"
+    },
+    "author": "mint-lemon",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/mint-lemon-eucalyptus/oge.ReconnectingClient/issues"
+    },
+    "homepage": "https://github.com/mint-lemon-eucalyptus/oge.ReconnectingClient"
+}
