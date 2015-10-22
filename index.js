@@ -49,7 +49,7 @@ ReconnectingClient.prototype.connectToMaster = function () {
         if (self.masterReconnectHandle) {
             clearInterval(self.masterReconnectHandle);
         }
-        this.emit('connected');
+        self.emit('connected');
         self.send({cmd: 'slave_auth_ack', strategy: 'servertoken', data: self.config.token});
     });
 
