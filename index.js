@@ -50,7 +50,6 @@ ReconnectingClient.prototype.connectToMaster = function () {
             clearInterval(self.masterReconnectHandle);
         }
         self.emit('connected');
-        self.send({cmd: 'slave_auth_ack', strategy: 'servertoken', data: self.config.token});
     });
 
     this.masterSocket.ws.on('message', function (message) {
