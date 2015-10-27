@@ -13,7 +13,7 @@ Client.prototype.send = function (data) {
         this.connection.send(JSON.stringify(js));
     } catch (e) {    //connection is in state CLOSING
 //        console.log(this.profile.id, 'connection', this.connection.readyState,js);
-        this.connection.close(1000)
+        this.ws.close(1000)
     }
 };
 Client.prototype.connect = function () {
