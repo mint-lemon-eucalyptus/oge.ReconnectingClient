@@ -10,9 +10,13 @@ function Client(url, config) {
 
 Client.prototype.send = function (data) {
     try {
-        this.connection.send(JSON.stringify(js));
+        this.connection.send(JSON.stringify(data));
     } catch (e) {    //connection is in state CLOSING
 //        console.log(this.profile.id, 'connection', this.connection.readyState,js);
+      var self=this;
+        //setTimeout(function(){
+        //    self.ws.send(data);
+        //})
       //  this.ws.close(1000)
     }
 };
