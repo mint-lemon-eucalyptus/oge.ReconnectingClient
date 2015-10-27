@@ -10,7 +10,7 @@ function Client(url, config) {
 
 Client.prototype.send = function (data) {
     try {
-        this.connection.send(JSON.stringify(data));
+        this.ws.send(JSON.stringify(data));
     } catch (e) {    //connection is in state CLOSING
         console.log('send', e);
       var self=this;
