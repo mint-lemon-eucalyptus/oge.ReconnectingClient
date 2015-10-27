@@ -12,7 +12,7 @@ Client.prototype.send = function (data) {
     try {
         this.connection.send(JSON.stringify(data));
     } catch (e) {    //connection is in state CLOSING
-        console.log(this.profile.id, 'send', e);
+        console.log('send', e);
       var self=this;
         //setTimeout(function(){
         //    self.ws.send(data);
