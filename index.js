@@ -63,6 +63,9 @@ ReconnectingClient.prototype.connectToMaster = function () {
         var command = self.commands[cmdName];
         if (typeof command == "function") {
             self.commands[cmdName](msg);    //тут надо передать контекст
+        } else {  //команда явно не описана - делаем событие
+            //console.log('notImplemented', cmdName, msg)
+            self.emit('notImplemented', msg);
         }
     });
     this.masterSocket.ws.on('error', function (e) {
