@@ -9,10 +9,15 @@ function Client(url, config) {
 
 
 Client.prototype.send = function (data) {
-    if (this.ws.readyState == 1) {
+    try {
         this.ws.send(JSON.stringify(data));
-    } else {
-     //   qw('toMainServer FAIL', data);
+    } catch (e) {    //connection is in state CLOSING
+        console.log('send', e);
+      var self=this;
+        //setTimeout(function(){
+        //    self.ws.send(data);
+        //})
+      //  this.ws.close(1000)
     }
 };
 Client.prototype.connect = function () {
