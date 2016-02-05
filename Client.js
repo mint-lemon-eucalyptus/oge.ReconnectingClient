@@ -1,32 +1,26 @@
 "use strict";
-var WS = require('ws');
+var WebSocket = require('ws');
 
 function Client(url, config) {
-    this.ws = null;
+    this.connection = null;
     this.config = config;
     this.url = url;
 }
 
 
-Client.prototype.send = function (data) {
+Client.prototype.sendRaw = function (data) {
     try {
-        this.ws.send(JSON.stringify(data));
+        this.connection.send(JSON.stringify(data));
     } catch (e) {    //connection is in state CLOSING
         console.log('send', e);
-      var self=this;
-        //setTimeout(function(){
-        //    self.ws.send(data);
-        //})
-      //  this.ws.close(1000)
     }
 };
 Client.prototype.connect = function () {
-    var self = this;
-    self.ws = new WS(self.url);
+    this.connection = new WebSocket(this.url);
 };
-Client.prototype.disconnect = function () {
-    this.ws.close();
-    delete this.ws;
+Client.prototype.close = function () {
+    this.connection.close(1000);
+    this.connection.removeAllListeners();
 };
 
 module.exports = Client;
