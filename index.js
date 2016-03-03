@@ -11,9 +11,11 @@ function ReconnectingClient() {
     this.masterSocket = null;
 
     this.restoreConnection = true;
-    this.reqIdCounter = 0;    //это ид запроса, при каждом вызове send, error, close он должен увеличиваться
+    this.__connectionErrors = 0;
+    this.__reqIdCounter = 0;    //это ид запроса, при каждом вызове send, error, close он должен увеличиваться
     this.callbacks = {};
     this.commands = {};
+    this.__reconnectInterval = 1000;
 }
 
 util.inherits(ReconnectingClient, EventEmitter);
@@ -26,16 +28,16 @@ util.inherits(ReconnectingClient, EventEmitter);
  */
 ReconnectingClient.prototype.send = function (data, callback) {
     //callback имеет 2 аргумента = запрос и объект для отправки ответа
-    ++this.reqIdCounter;
+    ++this.__reqIdCounter;
 
     if (this.masterSocket) {
         //отослать данные можно - добавляем коллбек в очередь
         //когда приходит ответ, определить, к какому коллбеку он относится можно по req_id
         if (typeof callback === "function") {
-            this.callbacks[this.reqIdCounter] = callback;
+            this.callbacks[this.__reqIdCounter] = callback;
             data.__t = 'q';
         }
-        data.__ = this.reqIdCounter;
+        data.__ = this.__reqIdCounter;
         this.masterSocket.sendRaw(data);
     } else {
         //если сокет не открыт, выполняем коллбек с ошибкой
@@ -52,6 +54,7 @@ ReconnectingClient.prototype.send = function (data, callback) {
  */
 ReconnectingClient.prototype.setConfig = function (config) {
     this.config = config;
+    this.__reconnectInterval = config.reconnectInterval;
     this.masterSocket = new Client(this.config.url, {});
 };
 
@@ -64,6 +67,8 @@ ReconnectingClient.prototype.connectToMaster = function () {
 
     this.masterSocket.connect();
     this.masterSocket.connection.once('open', function () {
+        self.__connectionErrors = 0;
+        self.__reconnectInterval = self.config.reconnectInterval;   //если соединение было, интервал реконнекта ставим по умолчанию
         if (self.masterReconnectHandle) {
             clearInterval(self.masterReconnectHandle);
         }
@@ -105,15 +110,21 @@ ReconnectingClient.prototype.connectToMaster = function () {
 
     function onceError(code) {
         self.masterSocket.close();
-        console.log('onceError', self.masterSocket.connection._events);
+        self.emit('not_ready'); //ошибка - сокет не готов
+        ++self.__connectionErrors;
+        if (self.__connectionErrors > 10) {   //уменьшаем интервал реконнекта после 10 ошибок
+            self.__reconnectInterval = self.config.reconnectInterval * 10;
+        }
+
+        console.log(self.constructor.name, 'onceError', self.__connectionErrors);
         //сокет отвалился - все колбеки выполним с ошибкой code
         for (var cb in self.callbacks) {
             self.callbacks[cb](code);
         }
-        if (self.restoreConnection && self.config.reconnectInterval > 0) {
+        if (self.restoreConnection && self.__reconnectInterval > 0) {
             self.masterReconnectHandle = setTimeout(function () {
                 self.connectToMaster();
-            }, self.config.reconnectInterval);
+            }, self.__reconnectInterval);
         }
     }
 };

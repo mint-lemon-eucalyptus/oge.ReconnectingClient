@@ -1,29 +1,29 @@
 {
-    "name": "ReconnectingClient",
-    "version": "0.5.0",
-    "description": "oge websocket reconnecting client module",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git@github.com:mint-lemon-eucalyptus/oge.ReconnectingClient.git"
-    },
-    "dependencies": {
-        "ws": "*"
-    },
-    "author": {
-        "name": "mint-lemon"
-    },
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/mint-lemon-eucalyptus/oge.ReconnectingClient/issues"
-    },
-    "homepage": "https://github.com/mint-lemon-eucalyptus/oge.ReconnectingClient",
-    "readme": "ERROR: No README data found!",
-    "_id": "ReconnectingClient@0.3.2",
-    "_shasum": "559e0640cc3cbb91fbd9231a84c570c16462ef3f",
-    "_resolved": "git+https://github.com/mint-lemon-eucalyptus/oge.ReconnectingClient.git#c3af99f225d132942ea37b9a624cdd3213770e76",
-    "_from": "ReconnectingClient@git+https://github.com/mint-lemon-eucalyptus/oge.ReconnectingClient.git"
+  "name": "ReconnectingClient",
+  "version": "0.6.0",
+  "description": "oge websocket reconnecting client module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mint-lemon-eucalyptus/oge.ReconnectingClient.git"
+  },
+  "dependencies": {
+    "ws": "*"
+  },
+  "author": {
+    "name": "mint-lemon"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mint-lemon-eucalyptus/oge.ReconnectingClient/issues"
+  },
+  "homepage": "https://github.com/mint-lemon-eucalyptus/oge.ReconnectingClient",
+  "readme": "ERROR: No README data found!",
+  "_id": "ReconnectingClient@0.5.0",
+  "_shasum": "559e0640cc3cbb91fbd9231a84c570c16462ef3f",
+  "_resolved": "git+https://github.com/mint-lemon-eucalyptus/oge.ReconnectingClient.git#cddea1dfe4ae0bf31e812e7e221972c042990d1b",
+  "_from": "ReconnectingClient@git+https://github.com/mint-lemon-eucalyptus/oge.ReconnectingClient.git"
 }
