@@ -28,16 +28,16 @@ util.inherits(ReconnectingClient, EventEmitter);
  */
 ReconnectingClient.prototype.send = function (data, callback) {
     //callback имеет 2 аргумента = запрос и объект для отправки ответа
-    ++this.__reqIdCounter;
 
     if (this.masterSocket) {
         //отослать данные можно - добавляем коллбек в очередь
         //когда приходит ответ, определить, к какому коллбеку он относится можно по req_id
         if (typeof callback === "function") {
+            ++this.__reqIdCounter;
             this.callbacks[this.__reqIdCounter] = callback;
             data.__t = 'q';
+            data.__ = this.__reqIdCounter;
         }
-        data.__ = this.__reqIdCounter;
         this.masterSocket.sendRaw(data);
     } else {
         //если сокет не открыт, выполняем коллбек с ошибкой
