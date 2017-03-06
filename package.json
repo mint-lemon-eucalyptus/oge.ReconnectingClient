@@ -1,6 +1,6 @@
 {
   "name": "ReconnectingClient",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "oge websocket reconnecting client module",
   "main": "index.js",
   "scripts": {
